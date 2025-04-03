@@ -1,0 +1,19 @@
+{
+  "name": "painpoint-aggregator",
+  "version": "1.0.0",
+  "description": "A service that aggregates user pain points",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.11.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
