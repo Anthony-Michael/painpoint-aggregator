@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { db } = require('./firebase');
 const PainPoint = require('../models/PainPoint');
+const { classifyPainPoint } = require('./classifyPainPoints');
 require('dotenv').config();
 
 const app = express();
@@ -25,15 +26,28 @@ app.post('/painpoints', async (req, res) => {
     const painPoint = new PainPoint(painPointData);
     painPoint.validate();
     
+    // Classify the pain point
+    const classification = await classifyPainPoint(painPoint.description);
+    
+    // Merge the classification result with the pain point data
+    const painPointWithClassification = {
+      ...painPoint.toFirestore(),
+      industry: classification.industry || 'unknown',
+      sentiment: classification.sentiment || 'neutral'
+    };
+    
     // Save to Firestore
-    const docRef = await db.collection('painpoints').add(painPoint.toFirestore());
+    const docRef = await db.collection('painpoints').add(painPointWithClassification);
     
     // Return success with the document ID
     res.status(201).json({
       success: true,
       id: docRef.id,
       message: 'Pain point saved successfully',
-      data: { ...painPoint, id: docRef.id }
+      data: { 
+        ...painPointWithClassification, 
+        id: docRef.id 
+      }
     });
   } catch (error) {
     console.error('Error saving pain point:', error);
@@ -71,9 +85,39 @@ app.get('/painpoints', async (req, res) => {
   }
 });
 
+// GET endpoint to retrieve recent pain points
+app.get('/recent-painpoints', async (req, res) => {
+  try {
+    const painPointsSnapshot = await db.collection('painpoints')
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
+    
+    const painPoints = [];
+    painPointsSnapshot.forEach(doc => {
+      const painPoint = PainPoint.fromFirestore(doc, doc.id);
+      painPoints.push(painPoint);
+    });
+
+    res.status(200).json({
+      success: true,
+      count: painPoints.length,
+      data: painPoints
+    });
+  } catch (error) {
+    console.error('Error retrieving recent pain points:', error);
+    res.status(500).json({
+      success: false, 
+      message: 'Failed to retrieve recent pain points',
+      error: error.toString()
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;
+

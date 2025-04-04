@@ -1,17 +1,20 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const admin = require('firebase-admin');
-require('dotenv').config();
 
-// Initialize Firebase Admin with service account
 let serviceAccount;
+
 try {
+  // Try to parse embedded JSON string (if you ever use that format)
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 } catch (error) {
-  // If the environment variable is not JSON, assume it's a path to the file
-  serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+  // Fallback: resolve the absolute path and require the JSON file
+  const fullPath = path.resolve(__dirname, '..', process.env.FIREBASE_SERVICE_ACCOUNT);
+  serviceAccount = require(fullPath);
 }
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();

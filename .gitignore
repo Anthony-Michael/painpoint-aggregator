@@ -33,4 +33,4 @@ Thumbs.db
 firebase-debug.log
 firebase-debug.*.log
 .firebase/
-serviceAccountKey.json 
+firebase-service-account.json 
