@@ -2,35 +2,46 @@ const axios = require('axios');
 require('dotenv').config();
 
 /**
- * Classifies a pain point description into industry and sentiment
- * @param {string} text - The pain point description to classify
- * @returns {Promise<Object>} - Object containing industry and sentiment
+ * Classifies a pain point description into industry and sentiment.
+ * @param {string} text - The pain point description to classify.
+ * @returns {Promise<Object>} - Object containing industry and sentiment.
  */
 async function classifyPainPoint(text) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
-    
+
+    // Replace the previous log with a more specific one
+    // console.log('🔑 OpenAI API Key loaded:', apiKey ? '✅ Loaded' : '❌ Missing');
+    console.log("🔑 Loaded API Key:", process.env.OPENAI_API_KEY?.slice(0, 12) + "...");
+
     if (!apiKey) {
       throw new Error('OpenAI API key is not configured');
     }
 
+    // 🧪 Build the payload separately
+    const payload = {
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful assistant that classifies pain points. Respond only with a JSON object.'
+        },
+        {
+          role: 'user',
+          content: `Classify the following pain point into industry and sentiment. Return only a JSON object with these two fields: "${text}"`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 150
+    };
+
+    // 🔍 Log payload before sending
+    console.log("📤 Sending payload to OpenAI:\n", JSON.stringify(payload, null, 2));
+
+    // 🚀 Send request
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant that classifies pain points. Respond only with a JSON object.'
-          },
-          {
-            role: 'user',
-            content: `Classify the following pain point into industry and sentiment. Return only a JSON object with these two fields: "${text}"`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 150
-      },
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -39,12 +50,17 @@ async function classifyPainPoint(text) {
       }
     );
 
+    // 🧠 Extract response content
     const result = response.data.choices[0].message.content;
+
+    // ✅ Log response for debug
+    console.log("✅ OpenAI response:\n", result);
+
     return JSON.parse(result);
   } catch (error) {
-    console.error('Error classifying pain point:', error);
-    return { 
-      industry: 'unknown', 
+    console.error('❌ Error classifying pain point:', error.message || error);
+    return {
+      industry: 'unknown',
       sentiment: 'neutral',
       error: error.message
     };
