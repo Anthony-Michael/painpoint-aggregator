@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const PainPointForm = ({ onSubmitSuccess }) => {
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setSuccessMessage('');
 
     try {
       const response = await axios.post('http://localhost:3000/painpoints', {
@@ -18,6 +29,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
 
       if (response.data.success) {
         setDescription('');
+        setSuccessMessage('Pain point submitted successfully!');
         if (onSubmitSuccess) {
           onSubmitSuccess();
         }
@@ -45,6 +57,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
       <button type="submit" disabled={submitting}>
         {submitting ? 'Submitting...' : 'Submit Pain Point'}
       </button>
+      {successMessage && <div className="form-success">{successMessage}</div>}
       {error && <div className="form-error">{error}</div>}
     </form>
   );

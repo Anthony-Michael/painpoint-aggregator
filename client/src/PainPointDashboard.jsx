@@ -60,14 +60,35 @@ const PainPointDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {painPoints.map((painPoint) => (
-                <tr key={painPoint.id}>
-                  <td>{painPoint.description}</td>
-                  <td>{painPoint.industry || 'Unknown'}</td>
-                  <td>{painPoint.sentiment || 'Neutral'}</td>
-                  <td>{new Date(painPoint.createdAt).toLocaleString()}</td>
-                </tr>
-              ))}
+              {[...painPoints]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by date descending
+                .map((painPoint) => {
+                  // Date formatting logic
+                  let formattedDate = '-'; // Default for invalid dates
+                  if (painPoint.createdAt) {
+                    const date = new Date(painPoint.createdAt);
+                    if (!isNaN(date.getTime())) { // Check if date is valid
+                      // Use en-CA locale with specific numeric format (DD/MM/YYYY, HH:mm)
+                      formattedDate = date.toLocaleString('en-CA', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: false // Use 24-hour clock
+                      });
+                    }
+                  }
+
+                  return (
+                    <tr key={painPoint.id}>
+                      <td>{painPoint.description}</td>
+                      <td>{(painPoint.industry || 'unknown').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
+                      <td>{(painPoint.sentiment || 'neutral').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
+                      <td>{formattedDate}</td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>

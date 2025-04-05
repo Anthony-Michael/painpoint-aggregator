@@ -1,3 +1,26 @@
+/* App Structure & Header */
+.app-container {
+  max-width: 1100px; /* Max width for the content */
+  margin: 0 auto; /* Center the container */
+  padding: 2rem; /* Add padding around the content */
+}
+
+.app-header {
+  text-align: center; /* Center header text */
+  margin-bottom: 2rem; /* Space below header */
+}
+
+.app-header h1 {
+  margin-bottom: 0.5rem; /* Space below main title */
+  font-size: 2.5em; /* Adjust title size if needed */
+}
+
+.subtitle {
+  font-size: 1.1em;
+  color: #6c757d; /* Subdued color for subtitle */
+  margin-top: 0;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -39,4 +62,81 @@
 
 .read-the-docs {
   color: #888;
+}
+.pain-point-form {
+  margin-bottom: 1.5rem;
+}
+
+.pain-point-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.pain-point-form button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pain-point-form button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.form-error {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+/* Style for the success message */
+.form-success {
+  color: green;
+  background-color: #e9f7ef;
+  border: 1px solid #a9d6b8;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 0.75rem; /* Space above the message */
+  text-align: center;
+}
+
+/* Table Styles */
+.table-container {
+  overflow-x: auto; /* Add horizontal scroll for smaller screens */
+  margin-top: 1.5rem;
+}
+
+.pain-points-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.pain-points-table th,
+.pain-points-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0; /* Lighter border */
+}
+
+.pain-points-table th {
+  font-weight: bold; /* Bold headers */
+  background-color: #f8f9fa; /* Light header background */
+}
+
+/* Alternating row colors */
+.pain-points-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Hover effect */
+.pain-points-table tbody tr:hover {
+  background-color: #e9ecef; /* Slightly darker hover */
 }
