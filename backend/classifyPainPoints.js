@@ -56,12 +56,19 @@ async function classifyPainPoint(text) {
     // ✅ Log response for debug
     console.log("✅ OpenAI response:\n", result);
 
-    return JSON.parse(result);
+    // Parse the result and add the simulated confidence score
+    const parsedResult = JSON.parse(result);
+    const confidenceScore = Math.floor(Math.random() * 11) + 85; // Simulate score 85-95
+
+    return { ...parsedResult, confidenceScore }; // Add score to the result
+
   } catch (error) {
     console.error('❌ Error classifying pain point:', error.message || error);
+    // Include a default confidence score in the error case
     return {
       industry: 'unknown',
       sentiment: 'neutral',
+      confidenceScore: 0, // Default confidence on error
       error: error.message
     };
   }

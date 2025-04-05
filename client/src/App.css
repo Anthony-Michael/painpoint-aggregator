@@ -140,3 +140,22 @@
 .pain-points-table tbody tr:hover {
   background-color: #e9ecef; /* Slightly darker hover */
 }
+
+/* Confidence Score Styling */
+.confidence-high {
+  color: #155724; /* Dark green */
+  font-weight: bold;
+}
+
+.confidence-medium {
+  color: #856404; /* Dark yellow/orange */
+}
+
+.confidence-low {
+  color: #721c24; /* Dark red */
+}
+
+.confidence-na {
+  color: #6c757d; /* Gray for N/A */
+  font-style: italic;
+}

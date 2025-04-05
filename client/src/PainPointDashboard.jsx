@@ -56,6 +56,7 @@ const PainPointDashboard = () => {
                 <th>Description</th>
                 <th>Industry</th>
                 <th>Sentiment</th>
+                <th>Confidence</th>
                 <th>Created At</th>
               </tr>
             </thead>
@@ -80,11 +81,32 @@ const PainPointDashboard = () => {
                     }
                   }
 
+                  // Confidence formatting & styling
+                  let confidenceText = 'N/A';
+                  let confidenceClass = 'confidence-na'; // Default class
+                  let confidenceIcon = ''; // Default icon
+                  const score = painPoint.confidenceScore;
+
+                  if (typeof score === 'number') {
+                    confidenceText = `${score}%`;
+                    if (score >= 90) {
+                      confidenceClass = 'confidence-high';
+                      confidenceIcon = '✅ ';
+                    } else if (score >= 80) {
+                      confidenceClass = 'confidence-medium';
+                      confidenceIcon = '⚠️ ';
+                    } else {
+                      confidenceClass = 'confidence-low';
+                      confidenceIcon = '❗ ';
+                    }
+                  }
+
                   return (
                     <tr key={painPoint.id}>
                       <td>{painPoint.description}</td>
                       <td>{(painPoint.industry || 'unknown').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
                       <td>{(painPoint.sentiment || 'neutral').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
+                      <td className={confidenceClass}>{confidenceIcon}{confidenceText}</td>
                       <td>{formattedDate}</td>
                     </tr>
                   );

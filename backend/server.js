@@ -35,8 +35,19 @@ app.post('/painpoints', async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
+    // Extract classification data including confidence score
+    const { industry, sentiment, confidenceScore } = classification;
+    
+    // Create pain point with all classification data
+    const painPointWithClassification = {
+      ...newPainPoint,
+      industry: industry || 'Unknown',
+      sentiment: sentiment || 'Neutral',
+      confidenceScore: confidenceScore || 0
+    };
+    
     // Save to Firestore
-    const docRef = await db.collection('painpoints').add(newPainPoint);
+    const docRef = await db.collection('painpoints').add(painPointWithClassification);
 
     // Return success with the newly created data (including Firestore ID)
     res.status(201).json({ 
