@@ -28,15 +28,21 @@ app.post('/painpoints', async (req, res) => {
   try {
     const classification = await classifyPainPoint(description);
 
-    // Extract classification data including confidence score
-    const { industry, sentiment, confidenceScore } = classification;
+    // Extract all expected fields from classification result
+    const { 
+      industry, 
+      sentiment, 
+      confidenceScore, 
+      confidenceExplanation 
+    } = classification;
     
-    // Create pain point object with all required data
+    // Create the final object to save to Firestore
     const newPainPointData = {
       description,
-      industry: industry || 'Unknown', // Apply fallback here
-      sentiment: sentiment || 'Neutral', // Apply fallback here
-      confidenceScore: confidenceScore !== undefined ? confidenceScore : 0, // Apply fallback here
+      industry: industry || 'unknown', // Use fallback from classifyPainPoint if needed
+      sentiment: sentiment || 'neutral', // Use fallback from classifyPainPoint if needed
+      confidenceScore: confidenceScore !== undefined ? confidenceScore : 0, // Ensure it's a number or 0
+      confidenceExplanation: confidenceExplanation || 'No explanation provided.', // Use fallback
       createdAt: new Date().toISOString()
     };
 
@@ -70,7 +76,9 @@ app.get('/painpoints', async (req, res) => {
         description: data.description || '',
         industry: data.industry || '', 
         sentiment: data.sentiment || '', 
-        confidenceScore: data.confidenceScore, // Add confidence score (will be undefined if missing)
+        // Explicitly default to null if confidence fields are missing
+        confidenceScore: data.confidenceScore !== undefined ? data.confidenceScore : null, 
+        confidenceExplanation: data.confidenceExplanation || null, 
         createdAt: data.createdAt 
       });
     });

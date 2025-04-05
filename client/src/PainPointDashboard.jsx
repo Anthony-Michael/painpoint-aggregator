@@ -106,7 +106,12 @@ const PainPointDashboard = () => {
                       <td>{painPoint.description}</td>
                       <td>{(painPoint.industry || 'unknown').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
                       <td>{(painPoint.sentiment || 'neutral').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
-                      <td className={confidenceClass}>{confidenceIcon}{confidenceText}</td>
+                      <td 
+                        className={confidenceClass} 
+                        title={painPoint.confidenceExplanation || 'No explanation available'}
+                      >
+                        {confidenceIcon}{confidenceText}
+                      </td>
                       <td>{formattedDate}</td>
                     </tr>
                   );
