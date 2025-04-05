@@ -28,31 +28,25 @@ app.post('/painpoints', async (req, res) => {
   try {
     const classification = await classifyPainPoint(description);
 
-    const newPainPoint = {
-      description,
-      industry: classification.industry || 'Unknown',
-      sentiment: classification.sentiment || 'Neutral',
-      createdAt: new Date().toISOString()
-    };
-
     // Extract classification data including confidence score
     const { industry, sentiment, confidenceScore } = classification;
     
-    // Create pain point with all classification data
-    const painPointWithClassification = {
-      ...newPainPoint,
-      industry: industry || 'Unknown',
-      sentiment: sentiment || 'Neutral',
-      confidenceScore: confidenceScore || 0
+    // Create pain point object with all required data
+    const newPainPointData = {
+      description,
+      industry: industry || 'Unknown', // Apply fallback here
+      sentiment: sentiment || 'Neutral', // Apply fallback here
+      confidenceScore: confidenceScore !== undefined ? confidenceScore : 0, // Apply fallback here
+      createdAt: new Date().toISOString()
     };
-    
-    // Save to Firestore
-    const docRef = await db.collection('painpoints').add(painPointWithClassification);
 
-    // Return success with the newly created data (including Firestore ID)
+    // Save to Firestore
+    const docRef = await db.collection('painpoints').add(newPainPointData);
+
+    // Return success with the data that was actually saved (including Firestore ID)
     res.status(201).json({ 
         success: true, 
-        data: { ...newPainPoint, id: docRef.id } 
+        data: { ...newPainPointData, id: docRef.id } 
     });
   } catch (err) {
     console.error('❌ Failed to save pain point:', err);
@@ -70,13 +64,14 @@ app.get('/painpoints', async (req, res) => {
     
     painPointsSnapshot.forEach(doc => {
       const data = doc.data(); // Get data directly from Firestore doc
-      // Construct the object for the response, including classification fields
+      // Construct the object for the response, including all necessary fields
       painPoints.push({
-        id: doc.id, // Include the document ID
-        description: data.description || '', // Use data from Firestore
-        industry: data.industry || '', // Include industry (fallback to empty string)
-        sentiment: data.sentiment || '', // Include sentiment (fallback to empty string)
-        createdAt: data.createdAt // Include createdAt
+        id: doc.id, 
+        description: data.description || '',
+        industry: data.industry || '', 
+        sentiment: data.sentiment || '', 
+        confidenceScore: data.confidenceScore, // Add confidence score (will be undefined if missing)
+        createdAt: data.createdAt 
       });
     });
     
