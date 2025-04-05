@@ -159,3 +159,14 @@
   color: #6c757d; /* Gray for N/A */
   font-style: italic;
 }
+
+/* Confidence Explanation Styling */
+.confidence-explanation {
+  font-size: 0.8em; /* Smaller font size */
+  color: #495057; /* Slightly muted text color */
+  /* Optional: Limit width and allow text wrapping/ellipsis if needed */
+  /* max-width: 200px; */
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  /* text-overflow: ellipsis; */
+}

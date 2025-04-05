@@ -57,6 +57,7 @@ const PainPointDashboard = () => {
                 <th>Industry</th>
                 <th>Sentiment</th>
                 <th>Confidence</th>
+                <th>Explanation</th>
                 <th>Created At</th>
               </tr>
             </thead>
@@ -81,13 +82,13 @@ const PainPointDashboard = () => {
                     }
                   }
 
-                  // Confidence formatting & styling
+                  // Confidence formatting & styling (assuming score is number or null)
                   let confidenceText = 'N/A';
-                  let confidenceClass = 'confidence-na'; // Default class
-                  let confidenceIcon = ''; // Default icon
-                  const score = painPoint.confidenceScore;
+                  let confidenceClass = 'confidence-na'; 
+                  let confidenceIcon = ''; 
+                  const score = painPoint.confidenceScore; // Will be number or null
 
-                  if (typeof score === 'number') {
+                  if (score !== null) { // Check if score is not null
                     confidenceText = `${score}%`;
                     if (score >= 90) {
                       confidenceClass = 'confidence-high';
@@ -104,13 +105,16 @@ const PainPointDashboard = () => {
                   return (
                     <tr key={painPoint.id}>
                       <td>{painPoint.description}</td>
-                      <td>{(painPoint.industry || 'unknown').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
-                      <td>{(painPoint.sentiment || 'neutral').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
+                      <td>{painPoint.industry?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
+                      <td>{painPoint.sentiment?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
                       <td 
                         className={confidenceClass} 
                         title={painPoint.confidenceExplanation || 'No explanation available'}
                       >
                         {confidenceIcon}{confidenceText}
+                      </td>
+                      <td className="confidence-explanation"> 
+                        {painPoint.confidenceExplanation || '—'}
                       </td>
                       <td>{formattedDate}</td>
                     </tr>
