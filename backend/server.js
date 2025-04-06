@@ -23,8 +23,18 @@ const analyzeLimiter = rateLimit({
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-// Apply rate limiter specifically to the public analyze endpoint
+// Rate limiter for waitlist submissions (e.g., 3 per hour)
+const waitlistLimiter = rateLimit({
+	windowMs: 60 * 60 * 1000, // 1 hour
+	max: 3,
+	message: 'Too many waitlist signups from this IP, please try again later.',
+	standardHeaders: true, 
+	legacyHeaders: false, 
+});
+
+// Apply rate limiters
 app.use('/api/public-analyze', analyzeLimiter);
+app.use('/api/waitlist', waitlistLimiter); // Apply limiter to waitlist endpoint
 
 // Routes
 app.get('/', (req, res) => {
@@ -162,26 +172,95 @@ app.post('/api/public-analyze', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid or empty description provided.' });
   }
   
-  // Simple sanitization: Limit length (adjust as needed)
   const sanitizedDescription = description.trim().slice(0, 5000); 
 
   try {
-    // Use existing classification function
+    // 1. Use existing classification function
     const classification = await classifyPainPoint(sanitizedDescription);
 
-    // Return only specific fields
+    // 2. Store the result (with capping logic)
+    const publicPainPointsRef = db.collection('publicPainPoints');
+    const MAX_ENTRIES = 1000;
+
+    // Get current count (can be slow at scale, consider alternatives like counters)
+    const countSnapshot = await publicPainPointsRef.count().get();
+    const currentCount = countSnapshot.data().count;
+
+    if (currentCount >= MAX_ENTRIES) {
+      // Find the oldest entry
+      const oldestQuery = publicPainPointsRef.orderBy('createdAt', 'asc').limit(1);
+      const oldestSnapshot = await oldestQuery.get();
+      if (!oldestSnapshot.empty) {
+        const oldestDocId = oldestSnapshot.docs[0].id;
+        console.log(`Public collection full, deleting oldest entry: ${oldestDocId}`);
+        await publicPainPointsRef.doc(oldestDocId).delete();
+      }
+    }
+
+    // Prepare data to save
+    const dataToSave = {
+      description: sanitizedDescription,
+      industry: classification.industry,
+      sentiment: classification.sentiment,
+      confidenceScore: classification.confidenceScore,
+      confidenceExplanation: classification.confidenceExplanation,
+      createdAt: new Date().toISOString(),
+      isAnonymous: true
+    };
+
+    // Add the new entry
+    await publicPainPointsRef.add(dataToSave);
+    console.log('Saved public analysis entry.');
+
+    // 3. Return only specific fields to the user
     res.status(200).json({
       success: true,
       data: {
         industry: classification.industry,
         sentiment: classification.sentiment,
         confidenceScore: classification.confidenceScore
+        // NOTE: confidenceExplanation is NOT returned publicly here
       }
     });
 
   } catch (err) {
-    console.error('❌ Error during public analysis:', err);
+    console.error('❌ Error during public analysis or saving:', err);
     res.status(500).json({ success: false, message: 'Analysis failed due to an internal error.' });
+  }
+});
+
+// --- New Waitlist Signup Endpoint ---
+app.post('/api/waitlist', async (req, res) => {
+  const { email } = req.body;
+
+  // Basic Email Validation (consider a more robust library for production)
+  if (!email || typeof email !== 'string' || !/\S+@\S+\.\S+/.test(email)) {
+    return res.status(400).json({ success: false, message: 'Invalid email format provided.' });
+  }
+
+  const sanitizedEmail = email.trim().toLowerCase(); // Normalize email
+
+  try {
+    const waitlistRef = db.collection('waitlist');
+    // Check if email already exists
+    const snapshot = await waitlistRef.where('email', '==', sanitizedEmail).limit(1).get();
+
+    if (!snapshot.empty) {
+      // Email already exists
+      return res.status(409).json({ success: false, message: 'This email is already on the waitlist.' });
+    }
+
+    // Add new email to waitlist
+    await waitlistRef.add({
+      email: sanitizedEmail,
+      signedUpAt: new Date().toISOString()
+    });
+
+    res.status(201).json({ success: true, message: 'Successfully joined the waitlist!' });
+
+  } catch (err) {
+    console.error('❌ Error adding to waitlist:', err);
+    res.status(500).json({ success: false, message: 'Failed to join waitlist due to an internal error.' });
   }
 });
 

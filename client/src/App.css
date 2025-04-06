@@ -96,15 +96,118 @@
   margin-top: 0.5rem;
 }
 
-/* Style for the success message */
-.form-success {
-  color: green;
-  background-color: #e9f7ef;
-  border: 1px solid #a9d6b8;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 0.75rem; /* Space above the message */
+/* New styles for feedback area */
+.pain-point-form-container {
+  margin-bottom: 2rem;
+}
+
+.analysis-feedback {
+  margin-top: 1.5rem;
+  min-height: 50px; /* Reserve space */
+}
+
+.form-result {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem; /* Space below result/error */
+  text-align: left;
+}
+
+.form-result ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.form-result li {
+  margin-bottom: 0.3rem;
+}
+
+.form-result strong {
+   display: inline-block;
+   min-width: 80px; /* Align keys */
+}
+
+.form-result.form-success {
+  background-color: #e6ffed; /* Light green */
+  border: 1px solid #c3f1d0;
+  color: #155724;
+}
+
+.form-result.form-error {
+  background-color: #ffebee; /* Light red */
+  border: 1px solid #ffcdd2;
+  color: #721c24;
   text-align: center;
+}
+
+/* Subtle fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Waitlist CTA & Form Styles */
+.waitlist-cta {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa; /* Light background */
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.waitlist-cta h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.waitlist-cta p {
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.waitlist-form {
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* Space between input and button */
+  margin-bottom: 1rem;
+}
+
+.waitlist-form input[type="email"] {
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  min-width: 250px; /* Give email input some width */
+  font-size: 1rem;
+}
+
+.waitlist-form button {
+  /* Inherits button styles, can add specifics if needed */
+  padding: 10px 15px;
+}
+
+.waitlist-message {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.waitlist-message.success {
+  color: #0f5132;
+  background-color: #d1e7dd;
+  border: 1px solid #badbcc;
+}
+
+.waitlist-message.error {
+  color: #842029;
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
 }
 
 /* Table Styles */
