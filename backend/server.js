@@ -3,6 +3,7 @@ const cors = require('cors');
 const { db } = require('./firebase');
 const PainPoint = require('../models/PainPoint');
 const { classifyPainPoint } = require('./classifyPainPoints');
+const rateLimit = require('express-rate-limit'); // Import rate limiter
 require('dotenv').config();
 
 const app = express();
@@ -11,6 +12,19 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// --- Rate Limiter Setup ---
+const analyzeLimiter = rateLimit({
+	windowMs: 60 * 60 * 1000, // 1 hour
+	max: 5, // Limit each IP to 5 requests per windowMs
+	message:
+		'Too many analysis requests created from this IP, please try again after an hour',
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply rate limiter specifically to the public analyze endpoint
+app.use('/api/public-analyze', analyzeLimiter);
 
 // Routes
 app.get('/', (req, res) => {
@@ -136,6 +150,38 @@ app.get('/recent-painpoints', async (req, res) => {
       message: 'Failed to retrieve recent pain points',
       error: error.toString()
     });
+  }
+});
+
+// --- New Public Analyze Endpoint ---
+app.post('/api/public-analyze', async (req, res) => {
+  const { description } = req.body;
+
+  // Basic Input Validation & Sanitization
+  if (!description || typeof description !== 'string' || description.trim().length === 0) {
+    return res.status(400).json({ success: false, message: 'Invalid or empty description provided.' });
+  }
+  
+  // Simple sanitization: Limit length (adjust as needed)
+  const sanitizedDescription = description.trim().slice(0, 5000); 
+
+  try {
+    // Use existing classification function
+    const classification = await classifyPainPoint(sanitizedDescription);
+
+    // Return only specific fields
+    res.status(200).json({
+      success: true,
+      data: {
+        industry: classification.industry,
+        sentiment: classification.sentiment,
+        confidenceScore: classification.confidenceScore
+      }
+    });
+
+  } catch (err) {
+    console.error('❌ Error during public analysis:', err);
+    res.status(500).json({ success: false, message: 'Analysis failed due to an internal error.' });
   }
 });
 
