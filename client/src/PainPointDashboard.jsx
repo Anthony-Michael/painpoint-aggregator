@@ -54,6 +54,7 @@ const PainPointDashboard = () => {
             <thead>
               <tr>
                 <th>Description</th>
+                <th>Source</th>
                 <th>Industry</th>
                 <th>Sentiment</th>
                 <th>Confidence</th>
@@ -102,19 +103,49 @@ const PainPointDashboard = () => {
                     }
                   }
 
+                  // Determine Source
+                  let sourceText = 'Manual'; // Default to Manual
+                  const explanation = painPoint.confidenceExplanation;
+                  const defaultExplanations = [
+                    'No explanation provided.', 
+                    'Classification failed due to an error.', 
+                    'Failed to parse AI response.', 
+                    null, 
+                    undefined
+                  ];
+
+                  if (score !== null && score > 0) {
+                    sourceText = 'AI';
+                  } else if (score === 0 && defaultExplanations.includes(explanation)) {
+                    sourceText = 'Manual'; // Explicitly Manual if score is 0 and explanation is default/missing
+                  } // Could add more sophisticated checks if needed
+
+                  // Determine Row Class based on score
+                  let rowClass = ''; // Default: rely on alternating styles
+                  if (score !== null) {
+                    if (score >= 80) {
+                      rowClass = 'row-confidence-high';
+                    } else if (score >= 40) {
+                      rowClass = 'row-confidence-medium';
+                    } else { // score < 40
+                      rowClass = 'row-confidence-low';
+                    }
+                  }
+
                   return (
-                    <tr key={painPoint.id}>
+                    <tr key={painPoint.id} className={rowClass}>
                       <td>{painPoint.description}</td>
+                      <td>{sourceText}</td>
                       <td>{painPoint.industry?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
                       <td>{painPoint.sentiment?.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</td>
                       <td 
                         className={confidenceClass} 
-                        title={painPoint.confidenceExplanation || 'No explanation available'}
+                        title={explanation || 'No explanation available'}
                       >
                         {confidenceIcon}{confidenceText}
                       </td>
                       <td className="confidence-explanation"> 
-                        {painPoint.confidenceExplanation || '—'}
+                        {explanation || '—'}
                       </td>
                       <td>{formattedDate}</td>
                     </tr>

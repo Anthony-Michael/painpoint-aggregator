@@ -141,6 +141,28 @@
   background-color: #e9ecef; /* Slightly darker hover */
 }
 
+/* Row Confidence Styling (Overrides alternating colors) */
+.row-confidence-high {
+  background-color: #e6ffed; /* Light green */
+}
+.row-confidence-medium {
+  background-color: #fff8e1; /* Light yellow */
+}
+.row-confidence-low {
+  background-color: #ffebee; /* Light red */
+}
+
+/* Row Hover with Confidence Styling (Ensure hover is still visible) */
+.row-confidence-high:hover {
+  background-color: #c3f1d0 !important; /* Slightly darker green */
+}
+.row-confidence-medium:hover {
+  background-color: #ffecb3 !important; /* Slightly darker yellow */
+}
+.row-confidence-low:hover {
+  background-color: #ffcdd2 !important; /* Slightly darker red */
+}
+
 /* Confidence Score Styling */
 .confidence-high {
   color: #155724; /* Dark green */

@@ -36,6 +36,9 @@ app.post('/painpoints', async (req, res) => {
       confidenceExplanation 
     } = classification;
     
+    // Check if description contains [test] (case-insensitive)
+    const isTestEntry = /\[test\]/i.test(description);
+    
     // Create the final object to save to Firestore
     const newPainPointData = {
       description,
@@ -43,7 +46,9 @@ app.post('/painpoints', async (req, res) => {
       sentiment: sentiment || 'neutral', // Use fallback from classifyPainPoint if needed
       confidenceScore: confidenceScore !== undefined ? confidenceScore : 0, // Ensure it's a number or 0
       confidenceExplanation: confidenceExplanation || 'No explanation provided.', // Use fallback
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      // Add isTest field if the condition is met
+      ...(isTestEntry && { isTest: true })
     };
 
     // Save to Firestore
@@ -70,16 +75,23 @@ app.get('/painpoints', async (req, res) => {
     
     painPointsSnapshot.forEach(doc => {
       const data = doc.data(); // Get data directly from Firestore doc
+      
+      // Filter out test entries unless in development mode
+      if (data.isTest === true && process.env.NODE_ENV !== 'development') {
+        return; // Skip this document
+      }
+      
       // Construct the object for the response, including all necessary fields
       painPoints.push({
         id: doc.id, 
         description: data.description || '',
         industry: data.industry || '', 
         sentiment: data.sentiment || '', 
-        // Explicitly default to null if confidence fields are missing
         confidenceScore: data.confidenceScore !== undefined ? data.confidenceScore : null, 
         confidenceExplanation: data.confidenceExplanation || null, 
         createdAt: data.createdAt 
+        // Optionally include isTest in the response if needed for debugging
+        // ...(process.env.NODE_ENV === 'development' && { isTest: data.isTest })
       });
     });
     
