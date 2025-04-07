@@ -14,11 +14,25 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
 	origin: [
 		'https://painpointinsightai.netlify.app',  // Production frontend
-		'http://localhost:5173'  // Vite development server
+		'http://localhost:5173',  // Vite development server
+		'https://painsignal.io'   // Additional production domain
 	],
-	methods: ['GET', 'POST'],
+	methods: ['GET', 'POST', 'OPTIONS'],
 	credentials: true,
 	allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
+}));
+
+// Handle preflight requests
+app.options('*', cors({
+	origin: [
+		'https://painpointinsightai.netlify.app',
+		'http://localhost:5173',
+		'https://painsignal.io'
+	],
+	methods: ['GET', 'POST', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+	credentials: true,
+	maxAge: 86400 // Cache preflight response for 24 hours
 }));
 
 // Global Rate Limiting
