@@ -40,8 +40,8 @@ app.get('/', (req, res) => {
 	res.send('Pain Point Aggregator API is running');
 });
 
-// POST endpoint to save pain points (Simplified version)
-app.post('/painpoints', async (req, res) => {
+// POST endpoint to save pain points
+app.post('/api/painpoints', async (req, res) => {
 	const { description } = req.body;
 
 	if (!description || typeof description !== 'string') {

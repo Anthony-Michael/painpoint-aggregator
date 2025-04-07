@@ -40,7 +40,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setAnalysisResult(null);
 
     try {
-      const response = await axios.post(`${API_URL}/painpoints`, {
+      const response = await axios.post('/api/painpoints', {
         description
       });
 
@@ -76,7 +76,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setWaitlistMessage('');
 
     try {
-      const response = await axios.post(`${API_URL}/api/waitlist`, { email });
+      const response = await axios.post('/api/waitlist', { email });
       
       if (response.status === 201) {
         setWaitlistStatus('success');
