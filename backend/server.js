@@ -23,7 +23,14 @@ app.use(cors({
 	allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
 }));
 
-// Handle preflight requests
+// Handle preflight requests for specific routes
+app.options('/api/painpoints', cors());      // Handle preflight for main endpoint
+app.options('/painpoints', cors());          // Handle preflight for non-api endpoint
+app.options('/api/recent-painpoints', cors()); // Handle preflight for recent endpoint
+app.options('/api/public-analyze', cors());  // Handle preflight for public analyze
+app.options('/api/waitlist', cors());        // Handle preflight for waitlist
+
+// Global preflight handler for other routes
 app.options('*', cors({
 	origin: [
 		'https://painpointinsightai.netlify.app',
@@ -56,7 +63,7 @@ app.get('/', (req, res) => {
 });
 
 // POST endpoint to save pain points
-app.post('/api/painpoints', async (req, res) => {
+app.post('/api/painpoints', cors(), async (req, res) => {
 	const { description } = req.body;
 
 	if (!description || typeof description !== 'string') {
@@ -105,8 +112,49 @@ app.post('/api/painpoints', async (req, res) => {
 	}
 });
 
+// Also handle POST requests to /painpoints (without /api prefix) for backward compatibility
+app.post('/painpoints', cors(), async (req, res) => {
+	// Reuse the same handler logic as the /api/painpoints endpoint
+	const { description } = req.body;
+
+	if (!description || typeof description !== 'string') {
+		return res.status(400).json({ success: false, message: 'Invalid description' });
+	}
+
+	try {
+		const classification = await classifyPainPoint(description);
+		const { 
+			industry, 
+			sentiment, 
+			confidenceScore, 
+			confidenceExplanation 
+		} = classification;
+		
+		const isTestEntry = /\[test\]/i.test(description);
+		const newPainPointData = {
+			description,
+			industry: industry || 'unknown',
+			sentiment: sentiment || 'neutral',
+			confidenceScore: confidenceScore !== undefined ? confidenceScore : 0,
+			confidenceExplanation: confidenceExplanation || 'No explanation provided.',
+			createdAt: new Date().toISOString(),
+			...(isTestEntry && { isTest: true })
+		};
+
+		const docRef = await db.collection('painpoints').add(newPainPointData);
+		res.status(201).json({ 
+			success: true, 
+			data: { ...newPainPointData, id: docRef.id } 
+		});
+	} catch (err) {
+		console.error('❌ Failed to save pain point:', err);
+		const message = err.message.includes('classify') ? 'Classification failed' : 'Failed to save pain point';
+		res.status(500).json({ success: false, message: message });
+	}
+});
+
 // GET endpoint to retrieve all pain points
-app.get('/painpoints', async (req, res) => {
+app.get('/api/painpoints', cors(), async (req, res) => {
 	try {
 		const painPointsSnapshot = await db.collection('painpoints').get();
 		const painPoints = [];
@@ -149,7 +197,75 @@ app.get('/painpoints', async (req, res) => {
 });
 
 // GET endpoint to retrieve recent pain points
-app.get('/recent-painpoints', async (req, res) => {
+app.get('/api/recent-painpoints', cors(), async (req, res) => {
+	try {
+		const painPointsSnapshot = await db.collection('painpoints')
+			.orderBy('createdAt', 'desc')
+			.limit(50)
+			.get();
+		
+		const painPoints = [];
+		painPointsSnapshot.forEach(doc => {
+			const painPoint = PainPoint.fromFirestore(doc, doc.id);
+			painPoints.push(painPoint);
+		});
+
+		res.status(200).json({
+			success: true,
+			count: painPoints.length,
+			data: painPoints
+		});
+	} catch (error) {
+		console.error('Error retrieving recent pain points:', error);
+		res.status(500).json({
+			success: false, 
+			message: 'Failed to retrieve recent pain points',
+			error: error.toString()
+		});
+	}
+});
+
+// GET endpoint for backward compatibility (without /api prefix)
+app.get('/painpoints', cors(), async (req, res) => {
+	try {
+		const painPointsSnapshot = await db.collection('painpoints').get();
+		const painPoints = [];
+		
+		painPointsSnapshot.forEach(doc => {
+			const data = doc.data();
+			
+			if (data.isTest === true && process.env.NODE_ENV !== 'development') {
+				return;
+			}
+			
+			painPoints.push({
+				id: doc.id, 
+				description: data.description || '',
+				industry: data.industry || '', 
+				sentiment: data.sentiment || '', 
+				confidenceScore: data.confidenceScore !== undefined ? data.confidenceScore : null, 
+				confidenceExplanation: data.confidenceExplanation || null, 
+				createdAt: data.createdAt 
+			});
+		});
+		
+		res.status(200).json({
+			success: true,
+			count: painPoints.length,
+			data: painPoints
+		});
+	} catch (error) {
+		console.error('Error retrieving pain points:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Failed to retrieve pain points',
+			error: error.toString()
+		});
+	}
+});
+
+// Also handle GET requests for recent pain points without /api prefix
+app.get('/recent-painpoints', cors(), async (req, res) => {
 	try {
 		const painPointsSnapshot = await db.collection('painpoints')
 			.orderBy('createdAt', 'desc')
@@ -178,7 +294,7 @@ app.get('/recent-painpoints', async (req, res) => {
 });
 
 // --- New Public Analyze Endpoint ---
-app.post('/api/public-analyze', async (req, res) => {
+app.post('/api/public-analyze', cors(), async (req, res) => {
 	const { description } = req.body;
 
 	// Basic Input Validation & Sanitization
@@ -244,7 +360,7 @@ app.post('/api/public-analyze', async (req, res) => {
 });
 
 // --- New Waitlist Signup Endpoint ---
-app.post('/api/waitlist', async (req, res) => {
+app.post('/api/waitlist', cors(), async (req, res) => {
 	const { email } = req.body;
 
 	// Basic Email Validation (consider a more robust library for production)
