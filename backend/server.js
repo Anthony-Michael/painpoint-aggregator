@@ -15,7 +15,8 @@ app.use(cors({
 	origin: [
 		'https://painpointinsightai.netlify.app',  // Production frontend
 		'http://localhost:5173',  // Vite development server
-		'https://painsignal.io'   // Additional production domain
+		'https://painsignal.io',   // Production domain
+		'https://www.painsignal.io'  // Production domain with www
 	],
 	methods: ['GET', 'POST', 'OPTIONS'],
 	credentials: true,
@@ -27,7 +28,8 @@ app.options('*', cors({
 	origin: [
 		'https://painpointinsightai.netlify.app',
 		'http://localhost:5173',
-		'https://painsignal.io'
+		'https://painsignal.io',
+		'https://www.painsignal.io'
 	],
 	methods: ['GET', 'POST', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
