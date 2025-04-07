@@ -37,7 +37,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setAnalysisResult(null);
 
     try {
-      const response = await axios.post('http://localhost:3000/api/public-analyze', {
+      const response = await axios.post('http://localhost:5173/painpoints', {
         description
       });
 

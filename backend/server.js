@@ -12,9 +12,10 @@ const PORT = process.env.PORT || 3000;
 // --- Middleware Setup ---
 // CORS Configuration
 app.use(cors({
-	origin: 'http://localhost:5173', // Allow only your frontend origin
-	methods: ['GET', 'POST'], // Allow specific methods
-	credentials: true // Allow cookies/authorization headers if needed
+	origin: true, // Allow all origins during development
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all common methods
+	credentials: true, // Allow credentials
+	allowedHeaders: ['Content-Type', 'Authorization'] // Allow common headers
 }));
 
 // Global Rate Limiting
