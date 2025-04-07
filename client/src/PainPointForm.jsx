@@ -40,7 +40,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setAnalysisResult(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/painpoints`, {
+      const response = await axios.post(API_URL, {
         description
       });
 
