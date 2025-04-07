@@ -13,13 +13,13 @@ const PORT = process.env.PORT || 3000;
 // CORS Configuration
 app.use(cors({
 	origin: [
-		'http://localhost:5173',
-		'http://localhost:3000',
-		'https://painpointinsightai.netlify.app'
+		'http://localhost:5173',  // Vite development server
+		'http://localhost:3000',  // Backend development server
+		'https://painpointinsightai.netlify.app'  // Production frontend
 	],
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	credentials: true,
-	allowedHeaders: ['Content-Type', 'Authorization']
+	allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
 }));
 
 // Global Rate Limiting
