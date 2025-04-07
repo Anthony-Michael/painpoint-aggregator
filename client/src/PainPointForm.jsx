@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Define API URL based on environment
-const API_URL = import.meta.env.PROD 
-  ? 'https://painpoint-aggregator-backend.onrender.com'  // Replace with your actual production backend URL
-  : 'http://localhost:3000';
+const API_URL = 'https://painpointinsightai.onrender.com/api/painpoints';
 
 const PainPointForm = ({ onSubmitSuccess }) => {
   const [description, setDescription] = useState('');
