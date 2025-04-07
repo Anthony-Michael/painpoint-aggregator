@@ -12,10 +12,14 @@ const PORT = process.env.PORT || 3000;
 // --- Middleware Setup ---
 // CORS Configuration
 app.use(cors({
-	origin: true, // Allow all origins during development
-	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all common methods
-	credentials: true, // Allow credentials
-	allowedHeaders: ['Content-Type', 'Authorization'] // Allow common headers
+	origin: [
+		'http://localhost:5173',
+		'http://localhost:3000',
+		'https://painpointinsightai.netlify.app'
+	],
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+	credentials: true,
+	allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Global Rate Limiting

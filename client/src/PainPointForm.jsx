@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Get the API URL from environment variables, fallback to development URL
+const API_URL = import.meta.env.VITE_PROD_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const PainPointForm = ({ onSubmitSuccess }) => {
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +40,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setAnalysisResult(null);
 
     try {
-      const response = await axios.post('http://localhost:5173/painpoints', {
+      const response = await axios.post(`${API_URL}/painpoints`, {
         description
       });
 
@@ -73,7 +76,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setWaitlistMessage('');
 
     try {
-      const response = await axios.post('http://localhost:3000/api/waitlist', { email });
+      const response = await axios.post(`${API_URL}/api/waitlist`, { email });
       
       if (response.status === 201) {
         setWaitlistStatus('success');
