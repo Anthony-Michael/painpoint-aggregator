@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Define API URL based on environment
 const API_URL = import.meta.env.PROD 
-  ? 'https://painpointinsightai.onrender.com'  // Production backend
+  ? 'https://painpoint-aggregator.onrender.com'  // Production backend
   : 'http://localhost:3000';  // Development backend
 
 const API_ENDPOINT = `${API_URL}/api/painpoints`;
