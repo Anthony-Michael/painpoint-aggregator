@@ -4,10 +4,14 @@ const rateLimit = require('express-rate-limit');
 const { db } = require('./firebase');
 const PainPoint = require('../models/PainPoint');
 const { classifyPainPoint } = require('./classifyPainPoints');
+const { Resend } = require('resend');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // --- Middleware Setup ---
 // CORS Configuration
@@ -44,15 +48,15 @@ app.options('*', cors({
 	maxAge: 86400 // Cache preflight response for 24 hours
 }));
 
-// Global Rate Limiting
-const limiter = rateLimit({
+// --- Rate Limiting ---
+// Specific limiter for /api/painpoints
+const apiPainPointsLimiter = rateLimit({
 	windowMs: 60 * 1000, // 1 minute
-	max: 10, // Limit each IP to 10 requests per windowMs for all routes
-	message: 'Too many requests from this IP, please try again after a minute',
-	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	max: 5, // Limit each IP to 5 requests per windowMs for this specific route
+	message: 'Too many requests to /api/painpoints from this IP, please try again after a minute',
+	standardHeaders: true, 
+	legacyHeaders: false, 
 });
-app.use(limiter); // Apply the limiter to all requests
 
 // JSON Body Parser (should come after CORS/RateLimit)
 app.use(express.json());
@@ -63,7 +67,7 @@ app.get('/', (req, res) => {
 });
 
 // POST endpoint to save pain points
-app.post('/api/painpoints', cors(), async (req, res) => {
+app.post('/api/painpoints', apiPainPointsLimiter, cors(), async (req, res) => {
 	const { description } = req.body;
 
 	if (!description || typeof description !== 'string') {
@@ -98,11 +102,50 @@ app.post('/api/painpoints', cors(), async (req, res) => {
 
 		// Save to Firestore
 		const docRef = await db.collection('painpoints').add(newPainPointData);
+		const savedData = { ...newPainPointData, id: docRef.id };
 
-		// Return success with the data that was actually saved (including Firestore ID)
+		// --- Send Email Notification ---
+		const emailFrom = process.env.EMAIL_FROM;
+		const emailTo = process.env.EMAIL_TO;
+		if (process.env.RESEND_API_KEY && emailFrom && emailTo) {
+			try {
+				const subject = `New Pain Point Submitted: ${savedData.industry || 'Unknown Industry'}`;
+				const htmlBody = `
+					<h1>New Pain Point Submission</h1>
+					<p><strong>ID:</strong> ${savedData.id}</p>
+					<p><strong>Description:</strong></p>
+					<pre>${savedData.description}</pre>
+					<hr>
+					<h2>Classification Results:</h2>
+					<ul>
+						<li><strong>Industry:</strong> ${savedData.industry}</li>
+						<li><strong>Sentiment:</strong> ${savedData.sentiment}</li>
+						<li><strong>Confidence Score:</strong> ${savedData.confidenceScore}</li>
+						<li><strong>Confidence Explanation:</strong> ${savedData.confidenceExplanation}</li>
+					</ul>
+					<p><em>Submitted At: ${new Date(savedData.createdAt).toLocaleString()}</em></p>
+				`;
+
+				await resend.emails.send({
+					from: emailFrom,
+					to: emailTo,
+					subject: subject,
+					html: htmlBody,
+				});
+				console.log(`📧 Email notification sent successfully to ${emailTo}`);
+			} catch (emailError) {
+				console.error('❌ Failed to send email notification:', emailError.message);
+				// Do not block the API response if email fails
+			}
+		} else {
+			console.warn('⚠️ Email configuration (RESEND_API_KEY, EMAIL_FROM, EMAIL_TO) missing in .env. Skipping email notification.');
+		}
+		// --- End Email Notification ---
+
+		// Return success with the data that was actually saved
 		res.status(201).json({ 
 			success: true, 
-			data: { ...newPainPointData, id: docRef.id } 
+			data: savedData 
 		});
 	} catch (err) {
 		console.error('❌ Failed to save pain point:', err);
@@ -154,7 +197,7 @@ app.post('/painpoints', cors(), async (req, res) => {
 });
 
 // GET endpoint to retrieve all pain points
-app.get('/api/painpoints', cors(), async (req, res) => {
+app.get('/api/painpoints', apiPainPointsLimiter, cors(), async (req, res) => {
 	try {
 		const painPointsSnapshot = await db.collection('painpoints').get();
 		const painPoints = [];
