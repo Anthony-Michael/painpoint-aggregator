@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Define API URL based on environment
-const API_URL = 'https://painpointinsightai.onrender.com/api/painpoints';
+const API_URL = import.meta.env.PROD 
+  ? 'https://painpointinsightai.onrender.com'  // Production backend
+  : 'http://localhost:3000';  // Development backend
+
+const API_ENDPOINT = `${API_URL}/api/painpoints`;
 
 const PainPointForm = ({ onSubmitSuccess }) => {
   const [description, setDescription] = useState('');
@@ -40,7 +44,7 @@ const PainPointForm = ({ onSubmitSuccess }) => {
     setAnalysisResult(null);
 
     try {
-      const response = await axios.post(API_URL, {
+      const response = await axios.post(API_ENDPOINT, {
         description
       });
 
